@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食物鏈進化遊戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: linear-gradient(to bottom right, #f0fdf4, #eff6ff);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #15803d;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #4b5563;
+            margin-bottom: 24px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #4b5563;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-color-blue { color: #2563eb; }
+        .stat-color-amber { color: #b45309; }
+        .stat-color-purple { color: #7c3aed; }
+        .stat-color-green { color: #16a34a; }
+
+        .stat-subtext {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .energy-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: #f59e0b;
+            transition: width 0.3s;
+        }
+
+        .message-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 4px;
+            color: #1e40af;
+        }
+
+        .ecosystem {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .ecosystem h2 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .ecosystem-flex {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 16px;
+        }
+
+        .species-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .emoji {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .bar {
+            width: 60px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.5s;
+        }
+
+        .bar-green { background: #22c55e; }
+        .bar-amber { background: #f59e0b; }
+        .bar-red { background: #ef4444; }
+
+        .species-count {
+            text-align: center;
+            margin-top: 8px;
+            min-width: 80px;
+        }
+
+        .count-value {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .count-label {
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .energy-flow {
+            margin-top: 32px;
+            text-align: center;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            background: #9ca3af !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-green { background: #22c55e; }
+        .btn-green:hover:not(:disabled) { background: #16a34a; }
+
+        .btn-amber { background: #f59e0b; }
+        .btn-amber:hover:not(:disabled) { background: #d97706; }
+
+        .btn-red { background: #ef4444; }
+        .btn-red:hover:not(:disabled) { background: #dc2626; }
+
+        .btn-blue { background: #3b82f6; }
+        .btn-blue:hover:not(:disabled) { background: #2563eb; }
+
+        .btn-purple { background: #a855f7; }
+        .btn-purple:hover:not(:disabled) { background: #9333ea; }
+
+        .btn-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .restart-container {
+            text-align: center;
+        }
+
+        .info-box {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .info-box p:first-child {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .button-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>食物鏈進化遊戲</h1>
+        <p class="subtitle">平衡生態系統，保持所有物種和諧共存</p>
+
+        <!-- 遊戲信息 -->
+        <div class="grid-4">
+            <div class="stat-card">
+                <div class="stat-label">季節</div>
+                <div class="stat-value stat-color-blue" id="seasonName">春季</div>
+                <div class="stat-subtext">第 <span id="seasonNum">0</span> 週期</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">能量</div>
+                <div class="stat-value stat-color-amber" id="energyNum">100</div>
+                <div class="energy-bar">
+                    <div class="energy-fill" id="energyBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">得分</div>
+                <div class="stat-value stat-color-purple" id="scoreNum">0</div>
+                <div class="stat-subtext">累積分數</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">狀態</div>
+                <div class="stat-value stat-color-green" id="statusText">進行中</div>
+                <div class="stat-subtext">&nbsp;</div>
+            </div>
+        </div>
+
+        <!-- 消息框 -->
+        <div class="message-box" id="messageBox">遊戲開始！照顧生態系統</div>
+
+        <!-- 食物鏈可視化 -->
+        <div class="ecosystem">
+            <h2>生態系統</h2>
+            <div class="ecosystem-flex">
+                <!-- 植物 -->
+                <div class="species-column">
+                    <div class="emoji">🌿</div>
+                    <div class="bar bar-green" id="plantsBar" style="height: 25px;"></div>
+                    <div class="species-count">
+                        <div class="count-value stat-color-green" id="plantsNum">50</div>
+                        <div class="count-label">植物</div>
+                    </div>
+                </div>
+
+                <!-- 草食動物 -->
+                <div class="species-column">
+                    <div class="emoji">🐰</div>
+                    <div class="bar bar-amber" id="herbivoresBar" style="height: 40px;"></div>
+                    <div class="species-count">
+                        <div class="count-value stat-color-amber" id="herbivoresNum">8</div>
+                        <div class="count-label">草食動物</div>
+                    </div>
+                </div>
+
+                <!-- 肉食動物 -->
+                <div class="species-column">
+                    <div class="emoji">🦁</div>
+                    <div class="bar bar-red" id="carnivoresBar" style="height: 30px;"></div>
+                    <div class="species-count">
+                        <div class="count-value stat-color-red" id="carnivoresNum">2</div>
+                        <div class="count-label">肉食動物</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 能量流向圖 -->
+            <div class="energy-flow">
+                🌿 植物 → 🐰 草食動物 → 🦁 肉食動物
+            </div>
+        </div>
+
+        <!-- 控制按鈕 -->
+        <div class="button-grid">
+            <button class="btn-green" onclick="addPlants()" id="btnPlants">
+                <div class="btn-emoji">🌱</div>
+                種植 (15)
+            </button>
+            <button class="btn-amber" onclick="addHerbivores()" id="btnHerbivores">
+                <div class="btn-emoji">🐰</div>
+                引入 (20)
+            </button>
+            <button class="btn-red" onclick="addCarnivores()" id="btnCarnivores">
+                <div class="btn-emoji">🦁</div>
+                引入 (25)
+            </button>
+            <button class="btn-blue" onclick="restoreEnergy()" id="btnRestore">
+                <div class="btn-emoji">⚡</div>
+                恢復
+            </button>
+        </div>
+
+        <!-- 重新開始按鈕 -->
+        <div class="restart-container" id="restartContainer" style="display: none;">
+            <button class="btn-purple" onclick="restart()">
+                🔄 重新開始
+            </button>
+        </div>
+
+        <!-- 說明 -->
+        <div class="info-box">
+            <p>遊戲說明：</p>
+            <p>使用能量種植植物、引入草食動物和肉食動物。保持生態平衡，防止任何物種絕滅。能量會自動消耗，可通過恢復能量按鈕補充，但會扣分。季節變化會影響植物生長速度。</p>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            plants: 50,
+            herbivores: 8,
+            carnivores: 2,
+            season: 0,
+            energy: 100,
+            score: 0,
+            gameOver: false,
+            message: '遊戲開始！照顧生態系統'
+        };
+
+        function updateDisplay() {
+            document.getElementById('plantsNum').textContent = gameState.plants;
+            document.getElementById('herbivoresNum').textContent = gameState.herbivores;
+            document.getElementById('carnivoresNum').textContent = gameState.carnivores;
+            document.getElementById('energyNum').textContent = gameState.energy;
+            document.getElementById('energyBar').style.width = gameState.energy + '%';
+            document.getElementById('scoreNum').textContent = gameState.score;
+            document.getElementById('seasonNum').textContent = gameState.season;
+            document.getElementById('messageBox').textContent = gameState.message;
+
+            // 更新柱狀圖
+            const maxHeight = 200;
+            document.getElementById('plantsBar').style.height = Math.min(gameState.plants / 2, maxHeight) + 'px';
+            document.getElementById('herbivoresBar').style.height = Math.min(gameState.herbivores * 5, maxHeight) + 'px';
+            document.getElementById('carnivoresBar').style.height = Math.min(gameState.carnivores * 15, maxHeight) + 'px';
+
+            // 更新季節
+            const seasonNames = ['春季', '夏季', '秋季', '冬季'];
+            document.getElementById('seasonName').textContent = seasonNames[gameState.season % 4];
+
+            // 更新狀態
+            if (gameState.gameOver) {
+                document.getElementById('statusText').textContent = '遊戲結束';
+                document.getElementById('restartContainer').style.display = 'block';
+            } else {
+                document.getElementById('statusText').textContent = '進行中';
+            }
+
+            // 更新按鈕狀態
+            document.getElementById('btnPlants').disabled = gameState.energy < 15 || gameState.gameOver;
+            document.getElementById('btnHerbivores').disabled = gameState.energy < 20 || gameState.gameOver;
+            document.getElementById('btnCarnivores').disabled = gameState.energy < 25 || gameState.gameOver;
+            document.getElementById('btnRestore').disabled = gameState.gameOver;
+        }
+
+        function gameLoop() {
+            if (gameState.gameOver) return;
+
+            const season = gameState.season % 4;
+            
+            // 季節效果
+            let seasonMultiplier = 1;
+            if (season === 0) seasonMultiplier = 1.2;
+            else if (season === 1) seasonMultiplier = 1;
+            else if (season === 2) seasonMultiplier = 0.8;
+            else seasonMultiplier = 0.5;
+
+            // 植物生長
+            gameState.plants += Math.floor(5 * seasonMultiplier);
+            
+            // 草食動物進食和繁殖
+            const herbivoreFood = Math.min(gameState.plants, gameState.herbivores * 3);
+            gameState.plants -= herbivoreFood;
+            gameState.herbivores += Math.floor(herbivoreFood / 15);
+            gameState.herbivores = Math.max(0, gameState.herbivores - Math.floor(gameState.herbivores * 0.15));
+            
+            // 肉食動物進食和繁殖
+            const carnivoreFood = Math.min(gameState.herbivores, gameState.carnivores * 2);
+            gameState.herbivores -= carnivoreFood;
+            gameState.carnivores += Math.floor(carnivoreFood / 8);
+            gameState.carnivores = Math.max(0, gameState.carnivores - Math.floor(gameState.carnivores * 0.1));
+
+            // 計算能量和分數
+            gameState.energy = Math.max(0, gameState.energy - 1);
+            gameState.score += gameState.plants + gameState.herbivores + gameState.carnivores;
+            gameState.season += 1;
+
+            // 檢查遊戲結束條件
+            if (gameState.plants === 0 && gameState.herbivores === 0) {
+                gameState.gameOver = true;
+                gameState.message = '生態系統崩潰！遊戲結束';
+            } else if (gameState.energy === 0) {
+                gameState.gameOver = true;
+                gameState.message = '能量耗盡！遊戲結束';
+            } else {
+                const currentSeason = gameState.season % 4;
+                if (currentSeason === 0) gameState.message = '🌸 春天來臨，萬物甦醒';
+                else if (currentSeason === 1) gameState.message = '☀️ 夏日炎炎，食物充足';
+                else if (currentSeason === 2) gameState.message = '🍂 秋風蕭瑟，準備過冬';
+                else gameState.message = '❄️ 嚴冬降臨，資源匱乏';
+            }
+
+            updateDisplay();
+        }
+
+        function addPlants() {
+            if (gameState.energy >= 15 && !gameState.gameOver) {
+                gameState.plants += 30;
+                gameState.energy -= 15;
+                gameState.message = '✨ 種植了新的植物';
+                updateDisplay();
+            }
+        }
+
+        function addHerbivores() {
+            if (gameState.energy >= 20 && !gameState.gameOver) {
+                gameState.herbivores += 5;
+                gameState.energy -= 20;
+                gameState.message = '🐰 引入了草食動物';
+                updateDisplay();
+            }
+        }
+
+        function addCarnivores() {
+            if (gameState.energy >= 25 && !gameState.gameOver) {
+                gameState.carnivores += 2;
+                gameState.energy -= 25;
+                gameState.message = '🦁 引入了肉食動物';
+                updateDisplay();
+            }
+        }
+
+        function restoreEnergy() {
+            if (!gameState.gameOver) {
+                gameState.energy = 100;
+                gameState.score = Math.max(0, gameState.score - 50);
+                gameState.message = '⚡ 能量已恢復';
+                updateDisplay();
+            }
+        }
+
+        function restart() {
+            gameState = {
+                plants: 50,
+                herbivores: 8,
+                carnivores: 2,
+                season: 0,
+                energy: 100,
+                score: 0,
+                gameOver: false,
+                message: '遊戲重新開始'
+            };
+            document.getElementById('restartContainer').style.display = 'none';
+            updateDisplay();
+        }
+
+        // 初始化顯示
+        updateDisplay();
+
+        // 遊戲循環
+        setInterval(gameLoop, 1000);
+    </script>
+</body>
+</html>
